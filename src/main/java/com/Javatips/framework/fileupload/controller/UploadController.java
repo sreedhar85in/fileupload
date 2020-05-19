@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,27 +17,32 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.Javatips.framework.fileupload.exception.InternalException;
+import com.Javatips.framework.fileupload.model.UploadResponse;
+import com.Javatips.framework.fileupload.service.UploadService;
+
 import io.swagger.annotations.ApiOperation;
 
 @RestController
 @RequestMapping("/uploadapi")
 public class UploadController {
 	
+	
+	@Autowired
+	UploadService uploadService;
+	
 	@ApiOperation(value = "Upload API", notes= "This is to upload the file via API")
 	@PostMapping("/fileupload")
-	public ResponseEntity uploadController(HttpServletRequest request, @RequestPart("file") MultipartFile file) throws IOException {
+	public ResponseEntity uploadController(HttpServletRequest request, @RequestPart("file") MultipartFile file) throws IOException, InternalException {
 		
 		if(file.getOriginalFilename()==null) {
 			
 			return new ResponseEntity(HttpStatus.BAD_REQUEST);
 		}
 		
+		UploadResponse response = uploadService.upload(request, file);
 		
-		byte[] bytes = file.getBytes();
-		Path path = Paths.get(file.getOriginalFilename());
-		Files.write(path, bytes);
-		System.out.println(path.getFileName());		
-		return new ResponseEntity("Files uploaded", HttpStatus.OK);
+		return new ResponseEntity(response, HttpStatus.OK);
 		
 		
 	}
